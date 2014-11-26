@@ -52,6 +52,10 @@ public class File extends java.io.File {
         super(dir, fname);
     }
 
+    public String getFilename() {
+        return super.toString();
+    }
+    
     @Override
     public boolean equals(Object obj) {
         try {

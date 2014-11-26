@@ -191,4 +191,30 @@ public class Util {
     public static void warn(String code, Object... args) {
         message('W', code, args);
     }
+
+    /**
+     * Check if 2 files/dirs refer to same (physical file/dir).
+     *
+     * @param f1 first file/dir.
+     * @param f2 second file/dir.
+     * @return true if both refer to same physical location.
+     */
+    public static boolean filesAreSame(String f1, String f2) {
+        return (new gblib.File(f1)).equals(new gblib.File(f2));
+    }
+
+    /**
+     * Add only new elements to list.
+     *
+     * @param <T> type of list element.
+     * @param to list to update with only new elements.
+     * @param from list to get new elements from.
+     */
+    public static <T> void addAllNoDups(List<T> to, List<T> from) {
+        for (T ele : from) {
+            if (!to.contains(ele)) {
+                to.add(ele);
+            }
+        }
+    }
 }
