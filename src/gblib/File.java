@@ -27,6 +27,8 @@ package gblib;
 import java.io.IOException;
 import static java.nio.file.Files.isSameFile;
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -66,11 +68,14 @@ public class File extends java.io.File {
             return false;
         }
     }
-
+    
     @Override
     public int hashCode() {
-        return super.hashCode();
-    }
-    
+        try {
+            return super.getCanonicalFile().hashCode();
+        } catch (IOException ex) {
+            return 0;
+        }
+    }    
     
 }

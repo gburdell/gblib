@@ -38,7 +38,27 @@ import java.util.StringTokenizer;
  * @author karl
  */
 public class MessageMgr {
-
+    private static int stMessageLevel = 1;
+    
+    /**
+     * Set new message level.
+     * @param lvl new message level.
+     * @return previous message level.
+     */
+    public static int setMessageLevel(int lvl) {
+        int was = stMessageLevel;
+        stMessageLevel = lvl;
+        return was;
+    }
+    
+    /**
+     * Get current message level.
+     * @return current message level.
+     */
+    public static int getMessageLevel() {
+        return stMessageLevel;
+    }
+    
     /**
      * Encapsulate message.
      */
@@ -107,6 +127,21 @@ public class MessageMgr {
 
     /**
      * Conditionally display message.
+     * @param msgLvl minimum message level required to display message.
+     * A higher number diminishes liklihood of message being displayed.
+     * @param severity severity code.
+     * @param code message code.
+     * @param args arguments.
+     */
+    public static void message(int msgLvl, char severity, String code, Object... args) {
+        if (msgLvl <= stMessageLevel) {
+            Message msg = new Message(severity, code, args);
+            print(msg);
+        }
+    }
+
+    /**
+     * Conditionally display message.
      */
     public static void message(boolean doMsg, char severity, String code, Object... args) {
         if (doMsg) {
@@ -118,10 +153,6 @@ public class MessageMgr {
     public static void message(char severity, String code, Object... args) {
         Message msg = new Message(severity, code, args);
         print(msg);
-    }
-
-    public static void message(String severity, String code, Object... args) {
-        message(severity.charAt(0), code, args);
     }
 
     public static void print(Message msg) {
@@ -263,6 +294,7 @@ public class MessageMgr {
     public String getFormat(String code) {
         return m_msgs.get(code);
     }
+    
     private static final MessageMgr stTheOne = new MessageMgr();
     private final Map<String, String> m_msgs = new HashMap<>();
     private final IMessenger m_messenger = new DefaultMessenger();

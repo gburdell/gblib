@@ -26,9 +26,121 @@ package gblib;
 import java.util.LinkedList;
 import java.util.List;
 import static gblib.MessageMgr.message;
-import java.util.Arrays;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 public class Util {
+
+    public static String stripDoubleQuotes(final String s) {
+        int len = s.length();
+        String ns = s.substring(1, len - 1);
+        return ns;
+    }
+
+    public static void invariant(boolean c) {
+        if (false == c) {
+            Thread.dumpStack();
+            System.exit(1);
+        }
+    }
+
+    private final static String stDOT = ".";
+
+    public static String getToolRoot() {
+        String root = System.getProperty("tool.root");
+        if (null == root) {
+            root = stDOT;
+        }
+        return root;
+    }
+
+    public static void fatal(Exception ex) {
+        PrintStream err = System.err;
+        err.print(ex.getMessage());
+        ex.printStackTrace(err);
+        System.exit(1);
+    }
+
+    /**
+     * Lookup property value.
+     *
+     * @param prop property name
+     * @return true if property exists and set to "true" or else false.
+     */
+    public static boolean getPropertyAsBool(String prop) {
+        String pv = System.getProperty(prop);
+        boolean v = (null == pv) ? false : Boolean.parseBoolean(pv);
+        return v;
+    }
+
+    public static int getPropertyAsInt(String nm) {
+        int rval = Integer.MIN_VALUE;
+        String str = System.getProperty(nm);
+        if (null != str) {
+            rval = Integer.parseInt(str);
+        }
+        return rval;
+    }
+
+    public static void abnormalExit(Exception ex) {
+        System.err.println(ex.getMessage());
+        ex.printStackTrace(System.err);
+        System.exit(1);
+    }
+
+    public static List<String> arrayToList(String s[]) {
+        List<String> rval = new LinkedList<>();
+        for (String i : s) {
+            rval.add(i);
+        }
+        return rval;
+    }
+
+    /**
+     * Return a null x as an empty collection.
+     */
+    public static <T> T asEmpty(T x, T empty) {
+        return (null != x) ? x : empty;
+    }
+
+    public static <T> T downCast(Object o) {
+        return (T) o;
+    }
+
+    /**
+     * Add only new elements to list.
+     *
+     * @param <T> type of list element.
+     * @param to list to update with only new elements.
+     * @param from list to get new elements from.
+     */
+    public static <T> void addAllNoDups(List<T> to, List<T> from) {
+        for (T ele : from) {
+            if (!to.contains(ele)) {
+                to.add(ele);
+            }
+        }
+    }
+
+    private final static String m_nl = System.getProperty("line.separator");
+
+    public static int streamCopy(BufferedInputStream from, BufferedOutputStream to) throws IOException {
+        final int bufSz = 2048;
+        byte buf[] = new byte[bufSz];
+        int tlCnt = 0, cnt = 0;
+        while (0 <= (cnt = from.read(buf, 0, bufSz))) {
+            tlCnt += cnt;
+            to.write(buf, 0, cnt);
+        }
+        to.flush();
+        return tlCnt;
+    }
+
+    public static String nl() {
+        return m_nl;
+    }
 
     /**
      * Check if objects are equal.
@@ -71,27 +183,6 @@ public class Util {
         public ConversionException(String msg) {
             super(msg);
         }
-    }
-
-    public static String nl() {
-        return System.lineSeparator();
-    }
-
-    /**
-     * Return null as an empty collection.
-     *
-     * @param <T> base type.
-     * @param x scalar to test for null.
-     * @param empty empty collection to return iff. x is null.
-     * @return x or empty (if x is null).
-     */
-    public static <T> T asEmpty(T x, T empty) {
-        return (null != x) ? x : empty;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T downCast(Object o) {
-        return (T) o;
     }
 
     public static class Pair<T1, T2> {
@@ -154,26 +245,10 @@ public class Util {
         return union(l1, l2, false);
     }
 
-    private final static String stDOT = ".";
-
-    public static String getToolRoot() {
-        String root = System.getProperty("tool.root");
-        if (null == root) {
-            root = stDOT;
-        }
-        return root;
-    }
-
     public static void assertFalse(boolean cond, String msg) {
         if (false != cond) {
             abnormalExit(new RuntimeException(msg));
         }
-    }
-
-    public static void abnormalExit(Exception ex) {
-        System.err.println(ex.getMessage());
-        ex.printStackTrace(System.err);
-        System.exit(1);
     }
 
     public static void abnormalExit(String msg) {
@@ -202,19 +277,20 @@ public class Util {
     public static boolean filesAreSame(String f1, String f2) {
         return (new gblib.File(f1)).equals(new gblib.File(f2));
     }
-
+    
     /**
-     * Add only new elements to list.
-     *
-     * @param <T> type of list element.
-     * @param to list to update with only new elements.
-     * @param from list to get new elements from.
+     * Append join+s2 to s1 iff. s2 != null.
+     * @param s1 prefix.
+     * @param join join s2 with this (iff. s2 != null).
+     * @param s2 append join + s2 iff. s2 != null.
+     * @return s1 with optional join+s2.
      */
-    public static <T> void addAllNoDups(List<T> to, List<T> from) {
-        for (T ele : from) {
-            if (!to.contains(ele)) {
-                to.add(ele);
-            }
+    public static String appendIfNotNull(String s1, String join, String s2) {
+        StringBuilder s = new StringBuilder(s1);
+        if (null != s2) {
+            s.append(join).append(s2);
         }
+        return s.toString();
     }
+
 }
