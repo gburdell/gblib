@@ -258,15 +258,22 @@ public class Util {
     public static void info(String code, Object... args) {
         message('I', code, args);
     }
-
-    public static void error(String code, Object... args) {
-        message('E', code, args);
-    }
-
+    
     public static void warn(String code, Object... args) {
         message('W', code, args);
     }
 
+    public static void info(int minLvl, String code, Object... args) {
+        message(minLvl, 'I', code, args);
+    }
+    
+    public static void warn(int minLvl, String code, Object... args) {
+        message(minLvl, 'W', code, args);
+    }
+
+    public static void error(String code, Object... args) {
+        message('E', code, args);
+    }
     /**
      * Check if 2 files/dirs refer to same (physical file/dir).
      *
