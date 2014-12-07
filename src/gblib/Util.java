@@ -142,22 +142,36 @@ public class Util {
         return m_nl;
     }
 
+    public static interface Equals<T> {
+
+        public boolean equals(T a, T b);
+    }
+
     /**
      * Check if objects are equal.
      *
      * @param <T> type of objects.
      * @param a 1st object (could be null).
      * @param b 2ns object (could be null).
+     * @param eq optional interface to provide equals method.
      * @return true iff. both objects are null or both are non-null and equal.
      */
-    public static <T> boolean equalsInclNull(T a, T b) {
+    public static <T> boolean equalsInclNull(T a, T b, Equals<T> eq) {
         if ((null == a) && (null == b)) {
             return true;
         }
         if ((null != a) && (null != b)) {
-            return a.equals(b);
+            if (null != eq) {
+                return eq.equals(a, b);
+            } else {
+                return a.equals(b);
+            }
         }
         return false;
+    }
+
+    public static <T> boolean equalsInclNull(T a, T b) {
+        return equalsInclNull(a, b, null);
     }
 
     public static char intToChar(int l) throws ConversionException {
@@ -258,7 +272,7 @@ public class Util {
     public static void info(String code, Object... args) {
         message('I', code, args);
     }
-    
+
     public static void warn(String code, Object... args) {
         message('W', code, args);
     }
@@ -266,7 +280,7 @@ public class Util {
     public static void info(int minLvl, String code, Object... args) {
         message(minLvl, 'I', code, args);
     }
-    
+
     public static void warn(int minLvl, String code, Object... args) {
         message(minLvl, 'W', code, args);
     }
@@ -274,6 +288,7 @@ public class Util {
     public static void error(String code, Object... args) {
         message('E', code, args);
     }
+
     /**
      * Check if 2 files/dirs refer to same (physical file/dir).
      *
@@ -284,9 +299,10 @@ public class Util {
     public static boolean filesAreSame(String f1, String f2) {
         return (new gblib.File(f1)).equals(new gblib.File(f2));
     }
-    
+
     /**
      * Append join+s2 to s1 iff. s2 != null.
+     *
      * @param s1 prefix.
      * @param join join s2 with this (iff. s2 != null).
      * @param s2 append join + s2 iff. s2 != null.
