@@ -27,6 +27,8 @@ package gblib;
 import java.io.IOException;
 import static java.nio.file.Files.isSameFile;
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -35,13 +37,20 @@ import java.nio.file.Path;
  * @author gburdell
  */
 public class File extends java.io.File {
-    public static String getCanonicalName(String fn) {
+    public static String getCanonicalPath(String fn) {
+        return (new File(fn)).getCanonicalPath();
+    }
+
+    @Override
+    public String getCanonicalPath() {
         try {
-            return (new File(fn)).getCanonicalPath();
+            return super.getCanonicalPath();
         } catch (IOException ex) {
-            return fn;
+            return getFilename();
         }
     }
+    
+    
     public File(String pathname) {
         super(pathname);
     }
