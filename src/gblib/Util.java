@@ -259,8 +259,8 @@ public class Util {
         return union(l1, l2, false);
     }
 
-    public static void assertFalse(boolean cond, String msg) {
-        if (false != cond) {
+    public static void assertTrue(boolean cond, String msg) {
+        if (!cond) {
             abnormalExit(new RuntimeException(msg));
         }
     }

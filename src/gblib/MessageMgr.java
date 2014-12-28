@@ -292,6 +292,9 @@ public class MessageMgr {
     }
 
     public String getFormat(String code) {
+        if (!m_msgs.containsKey(code)) {
+            throw new RuntimeException("No message detail/format for '"+code+"'");
+        }
         return m_msgs.get(code);
     }
     
