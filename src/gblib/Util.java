@@ -265,6 +265,10 @@ public class Util {
         }
     }
 
+    public static void assertFalse(boolean cond, String msg) {
+        assertTrue(!cond, msg);
+    }
+
     public static void abnormalExit(String msg) {
         abnormalExit(new Exception(msg));
     }
