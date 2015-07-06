@@ -33,6 +33,31 @@ import java.io.PrintStream;
 
 public class Util {
 
+    public static char unescape(final String s) {
+        invariant((2 == s.length()) && (s.charAt(0) == '\\'));
+        char c = 0;
+        switch (s) {
+            case "\\n":
+                c = '\n';
+                break;
+            case "\\r":
+                c = '\r';
+                break;
+            case "\\'":
+                c = '\'';
+                break;
+            case "\\t":
+                c = '\t';
+                break;
+            case "\\":
+                c = '\\';
+                break;
+            default:
+                invariant(false);
+        }
+        return c;
+    }
+
     public static String stripDoubleQuotes(final String s) {
         int len = s.length();
         String ns = s.substring(1, len - 1);
