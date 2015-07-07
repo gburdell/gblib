@@ -35,13 +35,16 @@ import java.util.StringTokenizer;
 
 /**
  * A singleton message manager.
+ *
  * @author karl
  */
 public class MessageMgr {
+
     private static int stMessageLevel = 1;
-    
+
     /**
      * Set new message level.
+     *
      * @param lvl new message level.
      * @return previous message level.
      */
@@ -50,15 +53,16 @@ public class MessageMgr {
         stMessageLevel = lvl;
         return was;
     }
-    
+
     /**
      * Get current message level.
+     *
      * @return current message level.
      */
     public static int getMessageLevel() {
         return stMessageLevel;
     }
-    
+
     /**
      * Encapsulate message.
      */
@@ -83,6 +87,7 @@ public class MessageMgr {
 
         /**
          * Get the message type.
+         *
          * @return message type.
          */
         public IMessenger.EType getType() {
@@ -91,17 +96,18 @@ public class MessageMgr {
 
         /**
          * Get formatted message.
+         *
          * @return formatted message.
          */
         public String getMessage() {
             return m_message;
         }
-        
+
         @Override
         public String toString() {
             return getMessage();
         }
-        
+
         /**
          * Message type
          */
@@ -117,7 +123,7 @@ public class MessageMgr {
      */
     private static String format(IMessenger.EType type, String code, Object... args) {
         String fmt = getTheOne().getFormat(code);
-        assert(null != fmt);
+        assert (null != fmt);
         StringBuilder buf = new StringBuilder(type.getPfx());
         buf.append(": ");
         buf.append(String.format(fmt, args));
@@ -127,8 +133,9 @@ public class MessageMgr {
 
     /**
      * Conditionally display message.
-     * @param msgLvl minimum message level required to display message.
-     * A higher number diminishes liklihood of message being displayed.
+     *
+     * @param msgLvl minimum message level required to display message. A higher
+     * number diminishes liklihood of message being displayed.
      * @param severity severity code.
      * @param code message code.
      * @param args arguments.
@@ -155,6 +162,24 @@ public class MessageMgr {
         print(msg);
     }
 
+    public static void message(int msgLvl, String code, Object... args) {
+        message(msgLvl, getSeverity(code), code, args);
+    }
+
+    public static void message(boolean doMsg, String code, Object... args) {
+        message(doMsg, getSeverity(code), code, args);
+    }
+
+    public static void message(String code, Object... args) {
+        message(getSeverity(code), code, args);
+    }
+    
+    private static char getSeverity(final String code) {
+        Character svr = getTheOne().m_severityByMsgCode.get(code);
+        Util.invariant(null != svr);
+        return svr;
+    }
+    
     public static void print(Message msg) {
         getTheOne().getMessenger().message(msg);
         getTheOne().m_msgCnts[msg.getType().getIx()]++;
@@ -168,7 +193,7 @@ public class MessageMgr {
     private static MessageMgr getTheOne() {
         return stTheOne;
     }
-    
+
     /**
      * Creates a new instance of MessageMgr
      */
@@ -188,6 +213,21 @@ public class MessageMgr {
         MessageMgr mgr = getTheOne();
         mgr.init(f);
     }
+
+    /**
+     * Set message severity.
+     *
+     * @param svr one of [IWE]
+     * @param messageCodes message codes to set severity.
+     */
+    public static void setSeverity(char svr, final String messageCodes[]) {
+        Util.invariant(svr == 'I' || svr == 'W' || svr == 'E');
+        for (final String code : messageCodes) {
+            getTheOne().m_severityByMsgCode.put(code, svr);
+        }
+    }
+
+    private final Map<String, Character> m_severityByMsgCode = new HashMap<>();
 
     private void init(File f) {
         try {
@@ -209,7 +249,7 @@ public class MessageMgr {
                 mark = line.indexOf(' ');
                 msgCode = line.substring(0, mark);
                 msg = line.substring(mark).trim();
-                assert(null == m_msgs.put(msgCode, msg));
+                assert (null == m_msgs.put(msgCode, msg));
             }
         } catch (IOException ex) {
             Util.abnormalExit(ex);
@@ -293,11 +333,11 @@ public class MessageMgr {
 
     public String getFormat(String code) {
         if (!m_msgs.containsKey(code)) {
-            throw new RuntimeException("No message detail/format for '"+code+"'");
+            throw new RuntimeException("No message detail/format for '" + code + "'");
         }
         return m_msgs.get(code);
     }
-    
+
     private static final MessageMgr stTheOne = new MessageMgr();
     private final Map<String, String> m_msgs = new HashMap<>();
     private final IMessenger m_messenger = new DefaultMessenger();
