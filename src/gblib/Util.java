@@ -123,6 +123,15 @@ public class Util {
         return rval;
     }
 
+    public static <T> int linearSearch(final T[] eles, final T ele) {
+        for (int i = 0; i < eles.length; i++) {
+            if (eles[i] == ele) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Return a null x as an empty collection.
      */
