@@ -248,7 +248,7 @@ public class MessageMgr {
                 line = line.trim();
                 mark = line.indexOf(' ');
                 msgCode = line.substring(0, mark);
-                msg = line.substring(mark).trim();
+                msg = line.substring(mark).trim().replace("\\n", "\n");
                 assert (null == m_msgs.put(msgCode, msg));
             }
         } catch (IOException ex) {
