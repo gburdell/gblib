@@ -33,6 +33,24 @@ import java.io.PrintStream;
 
 public class Util {
 
+    public static String escape(final char c) {
+        String s = "";
+        switch (c) {
+            case '\n':
+                s = "\\n";
+                break;
+            case '\t':
+                s = "\\t";
+                break;
+            case '\\':
+                s = "\\\\";
+                break;
+            default:
+                s = Character.toString(c);
+        }
+        return s;
+    }
+
     public static char unescape(final String s) {
         invariant((2 == s.length()) && (s.charAt(0) == '\\'));
         char c = 0;
