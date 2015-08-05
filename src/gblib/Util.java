@@ -51,6 +51,10 @@ public class Util {
         return s;
     }
 
+    public static String escape(final String s) {
+        return s.replace("\n", "\\n");
+    }
+
     public static char unescape(final String s) {
         invariant((2 == s.length()) && (s.charAt(0) == '\\'));
         char c = 0;

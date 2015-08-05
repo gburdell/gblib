@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -121,12 +122,20 @@ public class MessageMgr {
     /**
      * Format message.
      */
-    private static String format(IMessenger.EType type, String code, Object... args) {
+    private static String format(IMessenger.EType type, String code, final Object... args) {
         String fmt = getTheOne().getFormat(code);
         assert (null != fmt);
+        ArrayList<Object> nargs = new ArrayList<>(args.length);
+        for (Object arg : args) {
+            if (arg instanceof String) {
+                nargs.add(gblib.Util.escape((String)arg));
+            } else {
+                nargs.add(arg);
+            }
+        }
         StringBuilder buf = new StringBuilder(type.getPfx());
         buf.append(": ");
-        buf.append(String.format(fmt, args));
+        buf.append(String.format(fmt, nargs.toArray()));
         buf.append(String.format("  (%s)", code));
         return buf.toString();
     }
