@@ -332,7 +332,7 @@ public class FileCharReader implements AutoCloseable {
             getMatched().add(new Util.Pair<>(loc, m_matcher.group(i)));
         }
         assert getMatched().size() == groupCnt;
-        acceptGroup(groupCnt);
+        acceptGroup(0);
         if (groupCnt != cnt) {
             throw new ParseError(ErrorType.eGroupCnt);
         }
@@ -381,7 +381,6 @@ public class FileCharReader implements AutoCloseable {
         if (save) {
             getMatched().add(new Util.Pair<>(getFileLocation(), m_matcher.group(group)));
         }
-        acceptGroup(group);
     }
 
     public void acceptMatch(final int group) {
@@ -399,13 +398,10 @@ public class FileCharReader implements AutoCloseable {
         boolean match = matches(patt);
         if (match) {
             final int n = m_matcher.groupCount();
-            if (0 == n) {
-                acceptMatch(0, save);
-            } else {
-                for (int i = 1; i <= n; i++) {
-                    acceptMatch(i, save);
-                }
+            for (int i = 1; i <= n; i++) {
+                acceptMatch(i, save);
             }
+            acceptGroup(0);
         }
         return match;
     }
