@@ -248,7 +248,7 @@ public class Util {
         return (int) l;
     }
 
-    public static class ConversionException extends Exception {
+    public static class ConversionException extends RuntimeException {
 
         public ConversionException(String msg) {
             super(msg);

@@ -124,11 +124,10 @@ public class MessageMgr {
      */
     private static String format(IMessenger.EType type, String code, final Object... args) {
         String fmt = getTheOne().getFormat(code);
-        assert (null != fmt);
         ArrayList<Object> nargs = new ArrayList<>(args.length);
         for (Object arg : args) {
             if (arg instanceof String) {
-                nargs.add(gblib.Util.escape((String)arg));
+                nargs.add(gblib.Util.escape((String) arg));
             } else {
                 nargs.add(arg);
             }
@@ -182,13 +181,13 @@ public class MessageMgr {
     public static void message(String code, Object... args) {
         message(getSeverity(code), code, args);
     }
-    
+
     private static char getSeverity(final String code) {
         Character svr = getTheOne().m_severityByMsgCode.get(code);
         Util.invariant(null != svr);
         return svr;
     }
-    
+
     public static void print(Message msg) {
         getTheOne().getMessenger().message(msg);
         getTheOne().m_msgCnts[msg.getType().getIx()]++;
@@ -258,10 +257,11 @@ public class MessageMgr {
                 mark = line.indexOf(' ');
                 msgCode = line.substring(0, mark);
                 msg = line.substring(mark).trim().replace("\\n", "\n");
-                assert (null == m_msgs.put(msgCode, msg));
+                m_msgs.put(msgCode, msg);
             }
         } catch (IOException ex) {
             Util.abnormalExit(ex);
+
         }
     }
 
