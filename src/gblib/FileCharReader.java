@@ -334,6 +334,9 @@ public class FileCharReader implements AutoCloseable {
         assert getMatched().size() == groupCnt;
         acceptGroup(0);
         if (groupCnt != cnt) {
+            /*TODO: we should clear getMatched()?
+            * We should add last match to message?
+            */
             throw new ParseError(ErrorType.eGroupCnt);
         }
         return true;
@@ -455,9 +458,18 @@ public class FileCharReader implements AutoCloseable {
     public class ParseError extends Exception {
 
         public ParseError(final ErrorType type) {
+            m_type = type;
             m_loc = new FileLocation(getFile(), getLineNum(), getColNum());
         }
 
+        public ErrorType getType() {
+            return m_type;
+        }
+
+        public FileLocation getLocation() {
+            return m_loc;
+        }
+        private final ErrorType m_type;
         private final FileLocation m_loc;
     }
 

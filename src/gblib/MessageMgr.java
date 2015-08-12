@@ -222,6 +222,16 @@ public class MessageMgr {
         mgr.init(f);
     }
 
+    public static void addMessage(final String code, final String msg) {
+        getTheOne().m_msgs.put(code, msg);
+    }
+
+    public static MessageMgr addMessage(final char svr, final String code, final String msg) {
+        getTheOne().m_msgs.put(code, msg);
+        setSeverity(svr, new String[]{code});
+        return getTheOne();
+    }
+
     /**
      * Set message severity.
      *
