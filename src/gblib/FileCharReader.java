@@ -25,13 +25,16 @@ package gblib;
 
 import static gblib.Util.invariant;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Read characters from file for line-oriented processing.
@@ -44,26 +47,20 @@ public class FileCharReader implements AutoCloseable {
     public static final char NL = '\n';
 
     /**
-     * Create file reader using default buffer size.
+     * Create file reader.
      *
      * @param fname file name for reader.
      * @throws FileNotFoundException
      */
-    public FileCharReader(final String fname) throws FileNotFoundException {
-        this(fname, false);
-    }
-
-    /**
-     * Create file reader using default of actual file size.
-     *
-     * @param fname file name for reader.
-     * @param useFileSize true to to use actual file size.
-     * @throws FileNotFoundException
-     */
-    public FileCharReader(final String fname, final boolean useFileSize) throws FileNotFoundException {
+    public FileCharReader(final String fname) throws FileNotFoundException, IOException {
+        final boolean isGzip = fname.endsWith(".gz");
         m_file = new File(fname);
-        final long fsize = (useFileSize) ? m_file.length() : stFileBufSize;
-        m_ifs = new BufferedReader(new FileReader(m_file), Util.longToInt(fsize));
+        final long fsize = (!isGzip && (m_file.length() < stFileBufSize)) ? m_file.length() : stFileBufSize;
+        if (isGzip) {
+            m_ifs = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(fname))));
+        } else {
+            m_ifs = new BufferedReader(new FileReader(m_file), Util.longToInt(fsize));
+        }
         nextLine();
     }
 
@@ -302,20 +299,19 @@ public class FileCharReader implements AutoCloseable {
 
     /**
      * Match line contents against pattern. If >0 group(s) matched, save them.
-     * If all groups matched, then return true. In order to match pattern, it is
-     * assumed the patt is of form "(p)(q)?". In that example, cnt specified as
-     * 2: indicating q must be matched. Need this convention since doesn't
-     * appear to be method to match as much as possible w/o matching all.
+     * If all groups matched, then return true.
      *
      * @param line line to match against pattern.
      * @param patt pattern to match.
      * @param cnt number of groups expected.
+     * @param startPos start position within line.
      * @return true if all groups matched; false if 0.
      * @throws ParseError if less than cnt group(s) matched.
      */
-    public boolean match(final String line, final Pattern patt, final int cnt) throws ParseError {
+    public boolean match(final String line, final Pattern patt,
+            final int cnt, final int startPos) throws ParseError {
         setMatcher(patt, line);
-        if (!m_matcher.lookingAt()) {
+        if (!m_matcher.find(startPos)) {
             return false;
         }
         int groupCnt = m_matcher.groupCount();
@@ -335,11 +331,16 @@ public class FileCharReader implements AutoCloseable {
         acceptGroup(0);
         if (groupCnt != cnt) {
             /*TODO: we should clear getMatched()?
-            * We should add last match to message?
-            */
+             * We should add last match to message?
+             */
             throw new ParseError(ErrorType.eGroupCnt);
         }
         return true;
+    }
+
+    public boolean match(final String line, final Pattern patt,
+            final int cnt) throws ParseError {
+        return match(line, patt, cnt, 0);
     }
 
     /**
@@ -371,7 +372,7 @@ public class FileCharReader implements AutoCloseable {
 
     public boolean matches(final Pattern patt, final String str) {
         setMatcher(patt, str);
-        //match begin of pattern to being of line (not require entire region).
+        //match begin of pattern to begin of line (not require entire region).
         return m_matcher.lookingAt();
     }
 
