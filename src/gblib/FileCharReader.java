@@ -147,9 +147,9 @@ public class FileCharReader implements AutoCloseable {
     /**
      * Match substring with current position.
      *
-     * @param to match substring.
-     * @return true on match and also accept: advance current position past
-     * match; else false and do not advance.
+     * @param to matches substring.
+     * @return true on matches and also accept: advance current position past
+ matches; else false and do not advance.
      */
     public boolean acceptOnMatch(final String to) {
         final boolean match = to.equals(substring(to.length()));
@@ -301,14 +301,14 @@ public class FileCharReader implements AutoCloseable {
      * Match line contents against pattern. If >0 group(s) matched, save them.
      * If all groups matched, then return true.
      *
-     * @param line line to match against pattern.
-     * @param patt pattern to match.
+     * @param line line to matches against pattern.
+     * @param patt pattern to matches.
      * @param cnt number of groups expected.
      * @param startPos start position within line.
      * @return true if all groups matched; false if 0.
      * @throws ParseError if less than cnt group(s) matched.
      */
-    public boolean match(final String line, final Pattern patt,
+    public boolean matches(final String line, final Pattern patt,
             final int cnt, final int startPos) throws ParseError {
         setMatcher(patt, line);
         if (!m_matcher.find(startPos)) {
@@ -331,16 +331,16 @@ public class FileCharReader implements AutoCloseable {
         acceptGroup(0);
         if (groupCnt != cnt) {
             /*TODO: we should clear getMatched()?
-             * We should add last match to message?
+             * We should add last matches to message?
              */
             throw new ParseError(ErrorType.eGroupCnt);
         }
         return true;
     }
 
-    public boolean match(final String line, final Pattern patt,
+    public boolean matches(final String line, final Pattern patt,
             final int cnt) throws ParseError {
-        return match(line, patt, cnt, 0);
+        return FileCharReader.this.matches(line, patt, cnt, 0);
     }
 
     /**
@@ -358,8 +358,8 @@ public class FileCharReader implements AutoCloseable {
         }
     }
 
-    public boolean match(final Pattern patt, final int cnt) throws ParseError {
-        return match(m_remainder, patt, cnt);
+    public boolean matches(final Pattern patt, final int cnt) throws ParseError {
+        return FileCharReader.this.matches(m_remainder, patt, cnt);
     }
 
     public int getMatchedGroupCnt() {
@@ -367,7 +367,7 @@ public class FileCharReader implements AutoCloseable {
     }
 
     public boolean matches(final Pattern patt) {
-        return matches(patt, m_remainder);
+        return FileCharReader.this.matches(patt, m_remainder);
     }
 
     public boolean matches(final Pattern patt, final String str) {
@@ -379,6 +379,7 @@ public class FileCharReader implements AutoCloseable {
     private void setMatcher(final Pattern patt, final String str) {
         m_posWhenMatcherSet = m_pos;
         m_matcher = patt.matcher(str);
+        getMatched().clear();
     }
 
     public void acceptMatch(final int group, final boolean save) {
@@ -394,12 +395,12 @@ public class FileCharReader implements AutoCloseable {
     /**
      * Match pattern to remainder and accept groups onto stack.
      *
-     * @param patt pattern to match against remainder.
+     * @param patt pattern to matches against remainder.
      * @param save set true to save matching groups.
-     * @return true on match.
+     * @return true on matches.
      */
     public boolean acceptOnMatchSave(final Pattern patt, final boolean save) {
-        boolean match = matches(patt);
+        boolean match = FileCharReader.this.matches(patt);
         if (match) {
             final int n = m_matcher.groupCount();
             for (int i = 1; i <= n; i++) {
@@ -446,7 +447,14 @@ public class FileCharReader implements AutoCloseable {
     public Queue<Util.Pair<FileLocation, String>> getMatched() {
         return m_matched;
     }
-
+    
+    public String acceptGetMatched(final int grp) {
+        assert (grp < m_matcher.groupCount());
+        final String s = getMatched(grp);
+        acceptMatch(grp);
+        return s;
+    }
+    
     public String getMatched(final int grp) {
         return m_matcher.group(grp);
     }
