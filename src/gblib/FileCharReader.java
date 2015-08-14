@@ -340,7 +340,7 @@ public class FileCharReader implements AutoCloseable {
 
     public boolean matches(final String line, final Pattern patt,
             final int cnt) throws ParseError {
-        return FileCharReader.this.matches(line, patt, cnt, 0);
+        return matches(line, patt, cnt, 0);
     }
 
     /**
@@ -359,7 +359,7 @@ public class FileCharReader implements AutoCloseable {
     }
 
     public boolean matches(final Pattern patt, final int cnt) throws ParseError {
-        return FileCharReader.this.matches(m_remainder, patt, cnt);
+        return matches(m_remainder, patt, cnt);
     }
 
     public int getMatchedGroupCnt() {
@@ -367,7 +367,7 @@ public class FileCharReader implements AutoCloseable {
     }
 
     public boolean matches(final Pattern patt) {
-        return FileCharReader.this.matches(patt, m_remainder);
+        return matches(patt, m_remainder);
     }
 
     public boolean matches(final Pattern patt, final String str) {
@@ -400,7 +400,7 @@ public class FileCharReader implements AutoCloseable {
      * @return true on matches.
      */
     public boolean acceptOnMatchSave(final Pattern patt, final boolean save) {
-        boolean match = FileCharReader.this.matches(patt);
+        boolean match = matches(patt);
         if (match) {
             final int n = m_matcher.groupCount();
             for (int i = 1; i <= n; i++) {
