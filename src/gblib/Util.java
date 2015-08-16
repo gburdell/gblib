@@ -268,6 +268,18 @@ public class Util {
         public T2 e2;
     }
 
+    public static class Triplet<T1, T2, T3> extends Pair<T1,T2> {
+
+        public Triplet() {
+        }
+
+        public Triplet(T1 a1, T2 a2, T3 a3) {
+            super(a1,a2);
+            e3 = a3;
+        }
+        public T3 e3;
+    }
+
     /**
      * Generate comma separated String of list elements.
      *
