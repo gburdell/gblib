@@ -149,7 +149,7 @@ public class FileCharReader implements AutoCloseable {
      *
      * @param to matches substring.
      * @return true on matches and also accept: advance current position past
- matches; else false and do not advance.
+     * matches; else false and do not advance.
      */
     public boolean acceptOnMatch(final String to) {
         final boolean match = to.equals(substring(to.length()));
@@ -298,20 +298,20 @@ public class FileCharReader implements AutoCloseable {
     }
 
     /**
-     * Match line contents against pattern. If >0 group(s) matched, save them.
+     * Match line contents against pattern. 
+     * If >0 group(s) matched, save them.
      * If all groups matched, then return true.
      *
      * @param line line to matches against pattern.
-     * @param patt pattern to matches.
+     * @param patt pattern to match.
      * @param cnt number of groups expected.
-     * @param startPos start position within line.
      * @return true if all groups matched; false if 0.
      * @throws ParseError if less than cnt group(s) matched.
      */
-    public boolean matches(final String line, final Pattern patt,
-            final int cnt, final int startPos) throws ParseError {
+    public boolean matchSaveAccept(final String line, final Pattern patt,
+            final int cnt) throws ParseError {
         setMatcher(patt, line);
-        if (!m_matcher.find(startPos)) {
+        if (!m_matcher.lookingAt()) {
             return false;
         }
         int groupCnt = m_matcher.groupCount();
@@ -320,7 +320,7 @@ public class FileCharReader implements AutoCloseable {
         int n;
         for (int i = 1; i <= groupCnt; i++) {
             n = m_matcher.start(i);
-            if (0 > n) {
+            if (0 > n) {    //actually contains null
                 groupCnt = i - 1;
                 break;
             }
@@ -338,11 +338,6 @@ public class FileCharReader implements AutoCloseable {
         return true;
     }
 
-    public boolean matches(final String line, final Pattern patt,
-            final int cnt) throws ParseError {
-        return matches(line, patt, cnt, 0);
-    }
-
     /**
      * Accept to cover matcher group.
      *
@@ -351,25 +346,49 @@ public class FileCharReader implements AutoCloseable {
     private void acceptGroup(int group) {
         int n = m_matcher.end(group);
         if (0 <= n) {
-            n = n - (m_pos - m_posWhenMatcherSet);
             if (0 < n) {
                 accept(n);
             }
         }
     }
 
-    public boolean matches(final Pattern patt, final int cnt) throws ParseError {
-        return matches(m_remainder, patt, cnt);
+    /**
+     * Match line remainder contents against pattern. 
+     * If >0 group(s) matched, save them.
+     * If all groups matched, then return true.
+     *
+     * @param patt pattern to match.
+     * @param cnt number of groups expected.
+     * @return true if all groups matched; false if 0.
+     * @throws ParseError if less than cnt group(s) matched.
+     */
+    public boolean matchSaveAccept(final Pattern patt, final int cnt) throws ParseError {
+        return matchSaveAccept(m_remainder, patt, cnt);
     }
 
     public int getMatchedGroupCnt() {
         return m_matcher.groupCount();
     }
 
+    /**
+     * Match line remainder contents against pattern, starting at
+     * beginning of line.
+     * 
+     * @param patt pattern to match.
+     * @return true on match.
+     */
     public boolean matches(final Pattern patt) {
         return matches(patt, m_remainder);
     }
 
+    /**
+     * Match string contents against pattern, starting at
+     * beginning of line.
+     * 
+     * @param patt pattern to match.
+     * @param str string to match.
+     * @return true on match.
+     */
     public boolean matches(final Pattern patt, final String str) {
         setMatcher(patt, str);
         //match begin of pattern to begin of line (not require entire region).
@@ -377,19 +396,18 @@ public class FileCharReader implements AutoCloseable {
     }
 
     private void setMatcher(final Pattern patt, final String str) {
-        m_posWhenMatcherSet = m_pos;
         m_matcher = patt.matcher(str);
         getMatched().clear();
     }
 
-    public void acceptMatch(final int group, final boolean save) {
+    public void saveMatch(final int group, final boolean save) {
         if (save) {
             getMatched().add(new Util.Pair<>(getFileLocation(), m_matcher.group(group)));
         }
     }
 
-    public void acceptMatch(final int group) {
-        acceptMatch(group, false);
+    public void saveMatch(final int group) {
+        saveMatch(group, true);
     }
 
     /**
@@ -399,41 +417,41 @@ public class FileCharReader implements AutoCloseable {
      * @param save set true to save matching groups.
      * @return true on matches.
      */
-    public boolean acceptOnMatchSave(final Pattern patt, final boolean save) {
+    public boolean matchSaveAccept(final Pattern patt, final boolean save) {
         boolean match = matches(patt);
         if (match) {
-            final int n = m_matcher.groupCount();
+            final int n = getMatchedGroupCnt();
             for (int i = 1; i <= n; i++) {
-                acceptMatch(i, save);
+                saveMatch(i, save);
             }
             acceptGroup(0);
         }
         return match;
     }
 
-    public boolean acceptOnMatchSave(final Pattern patt) {
-        return acceptOnMatchSave(patt, true);
+    public boolean matchSaveAccept(final Pattern patt) {
+        return matchSaveAccept(patt, true);
     }
 
-    public boolean acceptOnMatch(final Pattern patt) {
-        return acceptOnMatchSave(patt, false);
+    public boolean matchAccept(final Pattern patt) {
+        return matchSaveAccept(patt, false);
     }
 
-    public boolean acceptOnMatchSave(final boolean save, final Pattern... patts) {
+    public boolean matchSaveAccept(final boolean save, final Pattern... patts) {
         for (final Pattern patt : patts) {
-            if (acceptOnMatchSave(patt, save)) {
+            if (matchSaveAccept(patt, save)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean acceptOnMatchSave(final Pattern... patts) {
-        return acceptOnMatchSave(true, patts);
+    public boolean matchSaveAccept(final Pattern... patts) {
+        return matchSaveAccept(true, patts);
     }
 
-    public boolean acceptOnMatch(final Pattern... patts) {
-        return acceptOnMatchSave(false, patts);
+    public boolean matchAccept(final Pattern... patts) {
+        return matchSaveAccept(false, patts);
     }
 
     public int[] getStartMark() {
@@ -447,14 +465,14 @@ public class FileCharReader implements AutoCloseable {
     public Queue<Util.Pair<FileLocation, String>> getMatched() {
         return m_matched;
     }
-    
-    public String acceptGetMatched(final int grp) {
-        assert (grp < m_matcher.groupCount());
+
+    public String saveGet(final int grp) {
+        assert (grp < getMatchedGroupCnt());
         final String s = getMatched(grp);
-        acceptMatch(grp);
+        saveMatch(grp);
         return s;
     }
-    
+
     public String getMatched(final int grp) {
         return m_matcher.group(grp);
     }
@@ -490,8 +508,6 @@ public class FileCharReader implements AutoCloseable {
     private final StringBuilder m_line = new StringBuilder(stLineBufSize);
     private boolean m_eof = false;
     private Matcher m_matcher;
-    // Save m_pos when m_matcher is set.  Need to offset successive accept.
-    private int m_posWhenMatcherSet;
     private final Queue<Util.Pair<FileLocation, String>> m_matched = new LinkedList<>();
 
     private static final int stFileBufSize = 1 << 20;
