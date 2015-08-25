@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.regex.Matcher;
@@ -298,8 +299,7 @@ public class FileCharReader implements AutoCloseable {
     }
 
     /**
-     * Match line contents against pattern. 
-     * If >0 group(s) matched, save them.
+     * Match line contents against pattern. If >0 group(s) matched, save them.
      * If all groups matched, then return true.
      *
      * @param line line to matches against pattern.
@@ -309,32 +309,34 @@ public class FileCharReader implements AutoCloseable {
      * @throws ParseError if less than cnt group(s) matched.
      */
     public boolean matchSaveAccept(final String line, final Pattern patt,
-            final int cnt) throws ParseError {
+            final Integer cnt[]) throws ParseError {
         setMatcher(patt, line);
         if (!m_matcher.lookingAt()) {
             return false;
         }
         int groupCnt = m_matcher.groupCount();
         final FileLocation start = getFileLocation();
-        FileLocation loc;
+        FileLocation loc, prevLoc = null;
         int n;
+        int nullCnt = 0;
         for (int i = 1; i <= groupCnt; i++) {
             n = m_matcher.start(i);
-            if (0 > n) {    //actually contains null
-                groupCnt = i - 1;
-                break;
+            if (0 <= n) {    //skip if null
+                loc = start.offset(n);
+                //dont add same
+                if ((null == prevLoc) || (loc.getColNum() != prevLoc.getColNum())) {
+                    getMatched().add(new Util.Pair<>(loc, m_matcher.group(i)));
+                    prevLoc = loc;
+                }
+            } else {
+                nullCnt++;
             }
-            loc = start.offset(n);
-            getMatched().add(new Util.Pair<>(loc, m_matcher.group(i)));
         }
-        assert getMatched().size() == groupCnt;
-        acceptGroup(0);
-        if (groupCnt != cnt) {
-            /*TODO: we should clear getMatched()?
-             * We should add last matches to message?
-             */
+        groupCnt -= nullCnt;
+        if (0 > Util.linearSearch(cnt, groupCnt)) {
             throw new ParseError(ErrorType.eGroupCnt);
         }
+        acceptGroup(0);
         return true;
     }
 
@@ -353,9 +355,8 @@ public class FileCharReader implements AutoCloseable {
     }
 
     /**
-     * Match line remainder contents against pattern. 
-     * If >0 group(s) matched, save them.
-     * If all groups matched, then return true.
+     * Match line remainder contents against pattern. If >0 group(s) matched,
+     * save them. If all groups matched, then return true.
      *
      * @param patt pattern to match.
      * @param cnt number of groups expected.
@@ -363,7 +364,12 @@ public class FileCharReader implements AutoCloseable {
      * @throws ParseError if less than cnt group(s) matched.
      */
     public boolean matchSaveAccept(final Pattern patt, final int cnt) throws ParseError {
-        return matchSaveAccept(m_remainder, patt, cnt);
+        return matchSaveAccept(m_remainder, patt, new Integer[]{cnt});
+    }
+
+    public boolean matchSaveAccept(final Pattern patt, final int... cnt) throws ParseError {
+        return matchSaveAccept(m_remainder, patt, 
+                Arrays.stream(cnt).boxed().toArray( Integer[]::new ));
     }
 
     public int getMatchedGroupCnt() {
@@ -371,9 +377,9 @@ public class FileCharReader implements AutoCloseable {
     }
 
     /**
-     * Match line remainder contents against pattern, starting at
-     * beginning of line.
-     * 
+     * Match line remainder contents against pattern, starting at beginning of
+     * line.
+     *
      * @param patt pattern to match.
      * @return true on match.
      */
@@ -382,9 +388,8 @@ public class FileCharReader implements AutoCloseable {
     }
 
     /**
-     * Match string contents against pattern, starting at
-     * beginning of line.
-     * 
+     * Match string contents against pattern, starting at beginning of line.
+     *
      * @param patt pattern to match.
      * @param str string to match.
      * @return true on match.
@@ -485,8 +490,11 @@ public class FileCharReader implements AutoCloseable {
     public class ParseError extends Exception {
 
         public ParseError(final ErrorType type) {
+            m_doing = getMatched(0);
             m_type = type;
+            acceptGroup(0); //skip over what we liked, before grab location
             m_loc = new FileLocation(getFile(), getLineNum(), getColNum());
+            getMatched().clear();
         }
 
         public ErrorType getType() {
@@ -496,6 +504,12 @@ public class FileCharReader implements AutoCloseable {
         public FileLocation getLocation() {
             return m_loc;
         }
+
+        public String getDoing() {
+            return m_doing;
+        }
+
+        private final String m_doing;
         private final ErrorType m_type;
         private final FileLocation m_loc;
     }
