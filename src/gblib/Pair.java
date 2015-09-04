@@ -44,10 +44,15 @@ public class Pair<T1, T2> {
         List<Pair<String, String>> rval
                 = new LinkedList<>();
         for (String kv : keyVals) {
-            StringTokenizer toks = new StringTokenizer(kv, delim);
-            String key = toks.nextToken();
-            String val = toks.hasMoreTokens() ? toks.nextToken() : null;
-            rval.add(new Pair<>(key, val));
+            if (kv.isEmpty()) {
+                rval.add(new Pair<>("",null));
+            } else {
+                StringTokenizer toks = new StringTokenizer(kv, delim);
+                String key = toks.nextToken();
+                String val = toks.hasMoreTokens() ? toks.nextToken() : null;
+                rval.add(new Pair<>(key, val));
+            }
+
         }
         return rval;
     }
