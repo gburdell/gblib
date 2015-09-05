@@ -170,17 +170,24 @@ public class FileCharReader implements AutoCloseable {
     }
 
     /**
-     * Replace substring in m_buf[span[0],span[1]) with repl.
+     * Replace substring in m_buf[beg,end) with repl.
      *
-     * @param span position in buffer to replace.
+     * @param beg mark begin (relative to m_line).
+     * @param end mark end (relative to m_line).
      * @param repl replacement string.
+     * @param rewind set true to rewind to begin.
      */
-    public void replace(int[] span, final String repl) {
+    public void replace(int beg, int end, final String repl, final boolean rewind) {
         // Only replace where we are (or after); not before.
-        span[0] += m_pos;
-        span[1] += m_pos;
-        invariant(span[1] <= m_line.length());
-        m_line.replace(span[0], span[1], repl);
+        if (!rewind) {
+            beg += m_pos;
+            end += m_pos;
+        }
+        invariant(end <= m_line.length());
+        m_line.replace(beg, end, repl);
+        if (rewind) {
+            m_pos = beg;
+        }
     }
 
     /**
@@ -368,8 +375,8 @@ public class FileCharReader implements AutoCloseable {
     }
 
     public boolean matchSaveAccept(final Pattern patt, final int... cnt) throws ParseError {
-        return matchSaveAccept(m_remainder, patt, 
-                Arrays.stream(cnt).boxed().toArray( Integer[]::new ));
+        return matchSaveAccept(m_remainder, patt,
+                Arrays.stream(cnt).boxed().toArray(Integer[]::new));
     }
 
     public int getMatchedGroupCnt() {
