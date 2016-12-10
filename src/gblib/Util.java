@@ -33,6 +33,10 @@ import java.io.PrintStream;
 
 public class Util {
 
+    public static boolean isUpperCase(final String s) {
+        return s.equals(s.toUpperCase());
+    }
+    
     public static String escape(final char c) {
         String s = "";
         switch (c) {
