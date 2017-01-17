@@ -65,6 +65,11 @@ public class Pair<T1, T2> {
         this.v1 = v1;
         this.v2 = v2;
     }
+    
+    public Pair() {
+        this(null, null);
+    }
+    
     public T1 v1;
     public T2 v2;
 }

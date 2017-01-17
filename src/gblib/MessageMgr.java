@@ -222,6 +222,19 @@ public class MessageMgr {
         mgr.init(f);
     }
 
+    /**
+     * Add messages.  A message entry separates code from format using '|'.
+     * @param msgs array of '|' separated code and format.
+     */
+    public static void addMessages(final String msgs[]) {
+        for (String m : msgs) {
+            int i = m.indexOf('|');
+            String code = m.substring(0, i).trim();
+            String fmt = m.substring(i + 1).trim();
+            addMessage(code, fmt);
+        }
+    }
+    
     public static void addMessage(final String code, final String msg) {
         getTheOne().m_msgs.put(code, msg);
     }
@@ -271,7 +284,6 @@ public class MessageMgr {
             }
         } catch (IOException ex) {
             Util.abnormalExit(ex);
-
         }
     }
 

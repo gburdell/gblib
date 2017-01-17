@@ -259,19 +259,6 @@ public class Util {
         }
     }
 
-    public static class Pair<T1, T2> {
-
-        public Pair() {
-        }
-
-        public Pair(T1 a1, T2 a2) {
-            e1 = a1;
-            e2 = a2;
-        }
-        public T1 e1;
-        public T2 e2;
-    }
-
     public static class Triplet<T1, T2, T3> extends Pair<T1,T2> {
 
         public Triplet() {

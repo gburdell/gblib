@@ -332,7 +332,7 @@ public class FileCharReader implements AutoCloseable {
                 loc = start.offset(n);
                 //dont add same
                 if ((null == prevLoc) || (loc.getColNum() != prevLoc.getColNum())) {
-                    getMatched().add(new Util.Pair<>(loc, m_matcher.group(i)));
+                    getMatched().add(new Pair<>(loc, m_matcher.group(i)));
                     prevLoc = loc;
                 }
             } else {
@@ -414,7 +414,7 @@ public class FileCharReader implements AutoCloseable {
 
     public void saveMatch(final int group, final boolean save) {
         if (save) {
-            getMatched().add(new Util.Pair<>(getFileLocation(), m_matcher.group(group)));
+            getMatched().add(new Pair<>(getFileLocation(), m_matcher.group(group)));
         }
     }
 
@@ -474,7 +474,7 @@ public class FileCharReader implements AutoCloseable {
         return new int[]{m_matcher.start(grp), m_matcher.end(grp)};
     }
 
-    public Queue<Util.Pair<FileLocation, String>> getMatched() {
+    public Queue<Pair<FileLocation, String>> getMatched() {
         return m_matched;
     }
 
@@ -529,7 +529,7 @@ public class FileCharReader implements AutoCloseable {
     private final StringBuilder m_line = new StringBuilder(stLineBufSize);
     private boolean m_eof = false;
     private Matcher m_matcher;
-    private final Queue<Util.Pair<FileLocation, String>> m_matched = new LinkedList<>();
+    private final Queue<Pair<FileLocation, String>> m_matched = new LinkedList<>();
 
     private static final int stFileBufSize = 1 << 20;
     private static final int stLineBufSize = 1024;
