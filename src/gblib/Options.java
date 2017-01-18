@@ -23,10 +23,13 @@
  */
 package gblib;
 
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,14 +46,14 @@ public class Options {
         return opts;
     }
    
-    public Options add(final String opt, final String description, final OnOption onOpt) {
+    public Options add(final String opt, final String description, final Consumer onOpt) {
         Matcher matcher = ADD_REX.matcher(opt.trim());
         if (false == matcher.matches()) {
-            throw new InvalidOptSpec(opt);
+            throw new InvalidOptSpecException(opt);
         }
         String shortOpt = matcher.group(1);
-        String longOpt = matcher.group(2);
-        String argName = matcher.group(3);
+        String longOpt = matcher.group(4);
+        String argName = matcher.group(6);
         for (String opti : new String[]{shortOpt, longOpt}) {
             if (opti != null) {
                 m_byOption.put(opti, new Pair(argName, onOpt));
@@ -63,55 +66,66 @@ public class Options {
         if (null != argName) {
             usage.append(' ').append(argName);
         }
-        m_optDescriptions.add(new Pair(usage, description));
+        m_optDescriptions.add(new Pair(usage.toString(), description));
         return this;
     }
     
     /**
      * Process options and arguments.
      * @param argv options and arguments.
-     * @return index of remaining non-option.
+     * @return remaining options.
      */
-    public int process(String argv[]) {
-        int i = 0;
-        while (i < argv.length) {
-            String opt = argv[i];
+    public Queue<String> process(String argv[]) {
+        Queue<String> opts = new LinkedList<>(Util.arrayToList(argv));
+        while (! opts.isEmpty()) {
+            String opt = opts.peek();
             if ('-' == opt.charAt(0)) {
-                Pair<String, OnOption> onOpt = m_byOption.get(opt);
+                Pair<String, Consumer> onOpt = m_byOption.get(opt);
                 if (null != onOpt) {
-                    i += 1;
+                    opts.remove();
                     if (null != onOpt.v1) {
-                        if (i < argv.length) {
-                            onOpt.v2.consume(argv[i++]);
+                        if (! opts.isEmpty()) {
+                            onOpt.v2.accept(opts.remove());
                         } else {
-                            throw new Usage(opt + ": missing argument '" + onOpt.v1 + "'");
+                            throw new UsageException(opt + ": missing argument '" + onOpt.v1 + "'");
                         }
                     } else {
-                        onOpt.v2.consume(null);
+                        boolean val = !opt.startsWith("--no-");
+                        onOpt.v2.accept(val);
                     }
                 } else {
-                    throw new Usage(opt + ": invalid option");
+                    throw new UsageException(opt + ": invalid option");
                 }
             } else {
                 break;
             }
         }
-        return i;
+        return opts;
     }
     
-    @FunctionalInterface
-    public interface OnOption {
-        public void consume(String value);
+    public String getUsage() {
+        // find longest
+        int longest = 0;
+        for (Pair<String, String> ele : m_optDescriptions) {
+            int n = ele.v1.length();
+            longest = (longest < n) ? n : longest;
+        }
+        final Formatter sbuf = new Formatter(new StringBuilder("Usage:\n"));
+        final String fmt = "%-" + longest + "s  : %s";
+        for (Pair<String, String> ele : m_optDescriptions) {
+            sbuf.format(fmt, ele.v1, ele.v2 + "\n");
+        }
+        return sbuf.toString();
     }
     
-    public static class Usage extends RuntimeException {
-        private Usage(final String msg) {
+    public static class UsageException extends RuntimeException {
+        private UsageException(final String msg) {
             super(msg);
         }
     }
     
-    public static class InvalidOptSpec extends RuntimeException {
-        private InvalidOptSpec(final String opt) {
+    public static class InvalidOptSpecException extends RuntimeException {
+        private InvalidOptSpecException(final String opt) {
             super("Invalid option: " + opt);
         }
     }
@@ -119,8 +133,8 @@ public class Options {
     /**
      * Map of pair: 1) arg name (or null); 2) consumer, by soft/long option.
      */
-    private final Map<String, Pair<String, OnOption>> m_byOption = new HashMap<>();
+    private final Map<String, Pair<String, Consumer>> m_byOption = new HashMap<>();
     private final List<Pair<String, String>> m_optDescriptions = new LinkedList<>();
     
-    private static final Pattern ADD_REX = Pattern.compile("(\\-[^\\|$\\s]+)(\\|\\-\\-[^$\\s]+)?(\\s+([\\S]+))?");
+    private static final Pattern ADD_REX = Pattern.compile("(\\-[^\\|$\\s]+)((\\|)(\\-\\-[^$\\s]+))?(\\s+([\\S]+))?");
 }
