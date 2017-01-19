@@ -30,6 +30,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 
 public class Util {
 
@@ -142,11 +143,7 @@ public class Util {
     }
 
     public static List<String> arrayToList(String s[]) {
-        List<String> rval = new LinkedList<>();
-        for (String i : s) {
-            rval.add(i);
-        }
-        return rval;
+        return Arrays.asList(s);
     }
 
     public static <T> int linearSearch(final T[] eles, final T ele) {
