@@ -110,7 +110,7 @@ public class Options {
             int n = ele.v1.length();
             longest = (longest < n) ? n : longest;
         }
-        final Formatter sbuf = new Formatter(new StringBuilder("Usage:\n"));
+        final Formatter sbuf = new Formatter(new StringBuilder("Options:\n"));
         final String fmt = "%-" + longest + "s  : %s";
         for (Pair<String, String> ele : m_optDescriptions) {
             sbuf.format(fmt, ele.v1, ele.v2 + "\n");
