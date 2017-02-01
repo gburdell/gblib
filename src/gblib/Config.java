@@ -68,6 +68,22 @@ public class Config extends HashMap<String, Object> {
         return this;
     }
     
+    public String getAsString(final String key) {
+        return String.class.cast(super.get(key));
+    }
+    
+    public Integer getAsInteger(final String key) {
+        return Integer.class.cast(super.get(key));
+    }
+    
+    public Boolean getAsBoolean(final String key) {
+        return Boolean.class.cast(super.get(key));
+    }
+    
+    public Double getAsDouble(final String key) {
+        return Double.class.cast(super.get(key));
+    }
+    
     public Config add(final Collection<String> keyVals) {
         keyVals.forEach(this::add);
         return this;
