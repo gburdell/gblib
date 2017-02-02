@@ -146,6 +146,10 @@ public class Util {
         return Arrays.asList(s);
     }
 
+    public static <T> List<T> createList(T... items) {
+        return Arrays.asList(items);
+    }
+
     public static <T> int linearSearch(final T[] eles, final T ele) {
         for (int i = 0; i < eles.length; i++) {
             if (eles[i] == ele) {
