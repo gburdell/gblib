@@ -29,4 +29,11 @@ package gblib;
  * @author gburdell
  */
 public class Tree<T> extends TreeNode<T> {
+    public Tree() {
+        super();
+    }
+    
+    public Tree(T data) {
+        super(data);
+    }
 }

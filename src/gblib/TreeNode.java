@@ -32,21 +32,40 @@ import java.util.LinkedList;
 public class TreeNode<T> extends LinkedList<T> {
 
     public TreeNode() {
-        this(null);
+        this(null, null);
+    }
+
+    public TreeNode(T data) {
+        this(data, null);
     }
 
     public TreeNode(TreeNode parent) {
+        this(null, parent);
+    }
+
+    public TreeNode(T data, TreeNode parent) {
+        m_data = data;
         m_parent = parent;
     }
 
-    public TreeNode<T> setParent(TreeNode parent) {
+    public TreeNode setParent(TreeNode parent) {
         m_parent = parent;
         return this;
     }
 
-    public TreeNode<T> getParent() {
+    public TreeNode getParent() {
         return m_parent;
     }
 
-    private TreeNode<T> m_parent;
+    public T getData() {
+        return m_data;
+    }
+    
+    public TreeNode setData(T data) {
+        m_data = data;
+        return this;
+    }
+
+    private T   m_data;
+    private TreeNode m_parent;
 }
