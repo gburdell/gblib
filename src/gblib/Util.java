@@ -329,6 +329,10 @@ public class Util {
         assertTrue(!cond, msg);
     }
 
+    public static void assertNever(String msg) {
+        abnormalExit(msg);
+    }
+    
     public static void abnormalExit(String msg) {
         abnormalExit(new Exception(msg));
     }
