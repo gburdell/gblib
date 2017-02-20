@@ -41,6 +41,11 @@ public class Config extends HashMap<String, Object> {
     public static Config create() {
         return new Config();
     }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return super.containsKey(key) && getAsBoolean(String.class.cast(key));
+    }
     
     /**
      * Add config entry.

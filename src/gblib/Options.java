@@ -70,6 +70,8 @@ public class Options {
         return this;
     }
     
+    private static final String NO_PFX = "--no-";
+    
     /**
      * Process options and arguments.
      * @param argv options and arguments.
@@ -80,6 +82,11 @@ public class Options {
         while (! opts.isEmpty()) {
             String opt = opts.peek();
             if ('-' == opt.charAt(0)) {
+                boolean isTrue = true;
+                if (opt.startsWith(NO_PFX)) {
+                    isTrue = false;
+                    opt = "--" + opt.substring(NO_PFX.length());
+                }
                 Pair<String, Consumer> onOpt = m_byOption.get(opt);
                 if (null != onOpt) {
                     opts.remove();
@@ -90,8 +97,7 @@ public class Options {
                             throw new UsageException(opt + ": missing argument '" + onOpt.v1 + "'");
                         }
                     } else {
-                        boolean val = !opt.startsWith("--no-");
-                        onOpt.v2.accept(val);
+                        onOpt.v2.accept(isTrue);
                     }
                 } else {
                     throw new UsageException(opt + ": invalid option");
