@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -125,6 +126,10 @@ public class MessageMgr {
     private static String format(IMessenger.EType type, String code, final Object... args) {
         String fmt = getTheOne().getFormat(code);
         ArrayList<Object> nargs = new ArrayList<>(args.length);
+        if (fmt.startsWith("%1$t") || fmt.startsWith("%t")) {
+            //e.g.: String.format("The date: %1$tY-%1$tm-%1$td", date);
+            nargs.add(Calendar.getInstance().getTime());
+        }
         for (Object arg : args) {
             if (arg instanceof String) {
                 nargs.add(gblib.Util.escape((String) arg));

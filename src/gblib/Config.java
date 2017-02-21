@@ -74,7 +74,7 @@ public class Config extends HashMap<String, Object> {
     }
     
     public String getAsString(final String key) {
-        return String.class.cast(super.get(key));
+        return super.get(key).toString();
     }
     
     public Integer getAsInteger(final String key) {
