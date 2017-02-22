@@ -153,7 +153,7 @@ public class MessageMgr {
      * @param code message code.
      * @param args arguments.
      */
-    public static void message(int msgLvl, char severity, String code, Object... args) {
+    public static synchronized void message(int msgLvl, char severity, String code, Object... args) {
         if (msgLvl <= stMessageLevel) {
             Message msg = new Message(severity, code, args);
             print(msg);
@@ -163,14 +163,14 @@ public class MessageMgr {
     /**
      * Conditionally display message.
      */
-    public static void message(boolean doMsg, char severity, String code, Object... args) {
+    public static synchronized void message(boolean doMsg, char severity, String code, Object... args) {
         if (doMsg) {
             Message msg = new Message(severity, code, args);
             print(msg);
         }
     }
 
-    public static void message(char severity, String code, Object... args) {
+    public static synchronized void message(char severity, String code, Object... args) {
         Message msg = new Message(severity, code, args);
         print(msg);
     }
@@ -193,7 +193,7 @@ public class MessageMgr {
         return svr;
     }
 
-    public static void print(Message msg) {
+    public static synchronized void print(Message msg) {
         getTheOne().getMessenger().message(msg);
         getTheOne().m_msgCnts[msg.getType().getIx()]++;
     }
