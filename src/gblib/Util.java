@@ -31,6 +31,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collection;
 
 public class Util {
 
@@ -279,7 +280,7 @@ public class Util {
      * @param eles list of elements.
      * @return comma separated String of list elements.
      */
-    public static <T> String toCommaSeparatedString(final List<T> eles) {
+    public static <T> String toCommaSeparatedString(final Collection<T> eles) {
         StringBuilder s = new StringBuilder();
         if (null != eles) {
             for (T ele : eles) {
@@ -292,6 +293,10 @@ public class Util {
         return s.toString();
     }
 
+    public static <T> String toCSV(final Collection<T> eles) {
+        return toCommaSeparatedString(eles);
+    }
+    
     public static String toString(StringBuilder s) {
         return (null != s) ? s.toString() : "";
     }
@@ -384,4 +389,11 @@ public class Util {
         return s.toString();
     }
 
+    public static <T> Collection<T> replicate(T item, int ntimes) {
+        List<T> items = new LinkedList<>();
+        for (int i = 0; i < ntimes; i++) {
+            items.add(item);
+        }
+        return items;
+    }
 }
