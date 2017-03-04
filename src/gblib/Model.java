@@ -55,11 +55,18 @@ public class Model {
         public Connection getConnection();
     }
 
-    public Model(String tblName, IConnection conn) throws SQLException {
+    public Model(String tblName, IConnection conn, boolean zeroOnNull) throws SQLException {
         m_tblName = tblName;
         m_conn = conn;
+        m_zeroOnNull = zeroOnNull;
         setup();
     }
+
+    public Model(String tblName, IConnection conn) throws SQLException {
+        this(tblName, conn, true);
+    }
+
+    private final boolean m_zeroOnNull;
 
     private static final String LOCK_TABLE = "LOCK TABLES @TBL@ WRITE";
     private static final String UNLOCK_TABLE = "UNLOCK TABLES";
@@ -112,6 +119,7 @@ public class Model {
                 r = Types.CHAR;
                 break;
             case "BIT":
+            case "TINYINT":
                 r = Types.BIT;
                 break;
             default:
@@ -139,33 +147,62 @@ public class Model {
         return m_colNames;
     }
 
+    private static final String TABLE_COLTYPES
+            = "select distinct column_name, data_type from information_schema.columns where table_name = ?";
+
+    private static final String GET_TABLE_NAMES
+            = "select distinct table_name from information_schema.tables";
+
+    /**
+     * Set the correct case-sensitive table name. In (real) *Nix, the table name
+     * is case-sensitive; but in MacOSX/Windows it is not.
+     */
+    private void setTableName() throws SQLException {
+        boolean done = false;
+        try (Connection conn = getConnection()) {
+            ResultSet rs = conn.createStatement().executeQuery(GET_TABLE_NAMES);
+            while (!done && rs.next()) {
+                String realTblName = rs.getString(1);
+                if (m_tblName.equalsIgnoreCase(realTblName)) {
+                    m_tblName = realTblName;
+                    done = true;
+                }
+            }
+            invariant(done);
+        }
+    }
+
     private void setup() throws SQLException {
         if (null == m_colInfo) {
+            setTableName();
             int coli = 1;
-            Connection conn = getConnection();
-            ResultSet rs = conn.getMetaData().getColumns(null, null, getTableName(), "%");
-            String colNm, typeNm;
-            while (rs.next()) {
-                colNm = rs.getString("COLUMN_NAME").toUpperCase();
-                typeNm = rs.getString("TYPE_NAME").toUpperCase();
-                if (null == m_colInfo) {
-                    m_colInfo = new LinkedHashMap<>(); //keep insert/key order
+            try (Connection conn = getConnection()) {
+                PreparedStatement stmt = getPreparedStatement(conn, TABLE_COLTYPES);
+                stmt.setString(1, m_tblName);
+                ResultSet rs = stmt.executeQuery();
+                String colNm, typeNm;
+                while (rs.next()) {
+                    colNm = rs.getString("COLUMN_NAME").toUpperCase();
+                    typeNm = rs.getString("DATA_TYPE").toUpperCase();
+                    if (null == m_colInfo) {
+                        m_colInfo = new LinkedHashMap<>(); //keep insert/key order
+                    }
+                    assert !m_colInfo.containsKey(colNm);
+                    m_colInfo.put(colNm, new PosType(coli, typeNm));
+                    coli++;
                 }
-                assert !m_colInfo.containsKey(colNm);
-                m_colInfo.put(colNm, new PosType(coli, typeNm));
-                coli++;
+                m_colNames = new LinkedList<>(m_colInfo.keySet());
+                invariant(m_colNames.remove("ID"));
+                StringBuilder bld = new StringBuilder("INSERT INTO ");
+                bld
+                        .append(getTableName())
+                        .append(" (")
+                        .append(Util.toCSV(getColumnNames()))
+                        .append(") VALUES (")
+                        .append(Util.toCSV(Util.replicate("?", getColumnNames().size())))
+                        .append(")");
+                m_insertStmt = bld.toString();
             }
-            m_colNames = new LinkedList<>(m_colInfo.keySet());
-            invariant(m_colNames.remove("ID"));
-            StringBuilder bld = new StringBuilder("INSERT INTO ");
-            bld
-                    .append(getTableName())
-                    .append(" (")
-                    .append(Util.toCSV(getColumnNames()))
-                    .append(") VALUES (")
-                    .append(Util.toCSV(Util.replicate("?", getColumnNames().size())))
-                    .append(")");
-            m_insertStmt = bld.toString();
         }
     }
 
@@ -223,10 +260,13 @@ public class Model {
             switch (pt.v2) {
                 case Types.INTEGER:
                     Long lng;
-                    if (val instanceof Number) {
+                    if ((null == val) && m_zeroOnNull) {
+                        lng = 0L;
+                    } else if (val instanceof Number) {
                         Number n = Util.downCast(val);
                         lng = n.longValue();
                     } else {
+                        //NOTE: m_zeroOnNull mitigates null here...
                         lng = Long.parseLong(val.toString());
                     }
                     stmt.setLong(stmtPos, lng);
@@ -249,10 +289,13 @@ public class Model {
                     break;
                 case Types.REAL:
                     Double dbl;
-                    if (val instanceof Number) {
+                    if ((null == val) && m_zeroOnNull) {
+                        dbl = 0.0;
+                    } else if (val instanceof Number) {
                         Number n = Util.downCast(val);
                         dbl = n.doubleValue();
                     } else {
+                        //NOTE: m_zeroOnNull mitigates null here...
                         dbl = Double.parseDouble(val.toString());
                     }
                     stmt.setDouble(stmtPos, dbl);
@@ -409,5 +452,5 @@ public class Model {
     private String m_insertStmt;
     private Map<String, PosType> m_colInfo = null;
     private List<String> m_colNames = Collections.EMPTY_LIST;
-    private final String m_tblName;
+    private String m_tblName;
 }

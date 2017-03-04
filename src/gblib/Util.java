@@ -28,17 +28,42 @@ import java.util.List;
 import static gblib.MessageMgr.message;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 
 public class Util {
 
+    /**
+     * Read InputStream and convert to string.
+     *
+     * @param ins input stream.
+     * @param n size of internal buffer.
+     * @return contents of stream or null on error.
+     * @throws java.io.IOException
+     */
+    public static String toString(InputStream ins, final int n) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[n];
+        while ((nRead = ins.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        buffer.flush();
+        return new String(buffer.toByteArray(), "UTF-8");
+    }
+
+    public static String toString(InputStream ins) throws IOException {
+        return toString(ins, 16384);
+    }
+
     public static boolean isUpperCase(final String s) {
         return s.equals(s.toUpperCase());
     }
-    
+
     public static String escape(final char c) {
         String s = "";
         switch (c) {
@@ -261,13 +286,13 @@ public class Util {
         }
     }
 
-    public static class Triplet<T1, T2, T3> extends Pair<T1,T2> {
+    public static class Triplet<T1, T2, T3> extends Pair<T1, T2> {
 
         public Triplet() {
         }
 
         public Triplet(T1 a1, T2 a2, T3 a3) {
-            super(a1,a2);
+            super(a1, a2);
             e3 = a3;
         }
         public T3 e3;
@@ -296,7 +321,7 @@ public class Util {
     public static <T> String toCSV(final Collection<T> eles) {
         return toCommaSeparatedString(eles);
     }
-    
+
     public static String toString(StringBuilder s) {
         return (null != s) ? s.toString() : "";
     }
@@ -337,7 +362,7 @@ public class Util {
     public static void assertNever(String msg) {
         abnormalExit(msg);
     }
-    
+
     public static void abnormalExit(String msg) {
         abnormalExit(new Exception(msg));
     }
