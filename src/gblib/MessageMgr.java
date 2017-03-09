@@ -41,6 +41,10 @@ import java.util.StringTokenizer;
  * @author karl
  */
 public class MessageMgr {
+    
+    public static PrintStream getOstrm(char severity) {
+        return getTheOne().getMessenger().factory(severity).getOstrm();
+    }
 
     private static int stMessageLevel = 1;
 
