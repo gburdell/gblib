@@ -5,15 +5,18 @@
  */
 package gblib;
 
+import static gblib.Util.invariant;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -135,11 +138,7 @@ public class JarFile {
     }
 
     /**
-     * Get Class (descriptor) for (fully-qualified) class name. 
-     * TODO: the
-     * current implementation will fail if fqn is an inner class referenced
-     * using import syntax: 'package.b.inner', since actual is
-     * 'package.b$inner'.
+     * Get Class (descriptor) for (fully-qualified) class name.
      *
      * @param fqn fully qualified name.
      * @return Class object.
@@ -148,6 +147,12 @@ public class JarFile {
     public static Class getClass(String fqn) throws ClassNotFoundException {
         Class cls = CLS_BY_NAME.get(fqn);
         if (Objects.isNull(cls)) {
+            if (!fqn.contains("$") && (fqn.indexOf('.') != fqn.lastIndexOf('.'))) {
+                //we have more than one '.' and not explicit inner class (using '$')
+                int nextDot = fqn.indexOf('.', fqn.indexOf('.')+1);
+                String pkgCls = fqn.substring(0, nextDot);
+                fqn = pkgCls + fqn.substring(nextDot).replace('.', '$');
+            }
             cls = Class.forName(fqn);
             CLS_BY_NAME.put(fqn, cls);
         }
