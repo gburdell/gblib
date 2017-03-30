@@ -162,24 +162,20 @@ public class JarFile {
     public static Class getClass(String fqn) throws ClassNotFoundException {
         Class cls = CLS_BY_NAME.get(fqn);
         if (Objects.isNull(cls)) {
-            if (!fqn.contains("$") && (fqn.indexOf('.') != fqn.lastIndexOf('.'))) {
+            //todo: this is broken since we can have fqn with all '.'
+            //and match class, as in 'laol.rt.ILaol'
+            if (false && !fqn.contains("$") && (fqn.indexOf('.') != fqn.lastIndexOf('.'))) {
                 //we have more than one '.' and not explicit inner class (using '$')
                 int nextDot = fqn.indexOf('.', fqn.indexOf('.') + ".".length());
                 String pkgCls = fqn.substring(0, nextDot);
                 fqn = pkgCls + fqn.substring(nextDot).replace('.', '$');
             }
-            //load class but do NOT initialize
-            cls = Class.forName(fqn, false, BOGUS.getClass().getClassLoader());
+            cls = Class.forName(fqn);
             CLS_BY_NAME.put(fqn, cls);
         }
         return cls;
     }
-
-    /**
-     * A bogus object which we use to get class loader (in a static method).
-     */
-    private static final Object BOGUS = new Object();
-    
+ 
     /**
      * Get map of Class by class name.
      *
