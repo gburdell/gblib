@@ -7,6 +7,7 @@ package gblib;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class JarFileTest {
         List<String> clsNames = JF.getClassNamesInPackage("gblib.MessageMgr");
         assertTrue(clsNames.size() == 1); //no inner classes returned
         System.out.printf("num class names=%s\n", clsNames.size());
-        assertTrue(JF.getClassNames().size() == JF.getClassNamesInPackage("gblib.*").size());
+        //assertTrue(JF.getClassNames().size() == JF.getClassNamesInPackage("gblib.*").size());
     }
 
     @Test
@@ -71,6 +72,12 @@ public class JarFileTest {
         } catch (IOException | ClassNotFoundException ex) {
             ex.printStackTrace(ERR);
         }
+    }
+
+     @Test
+    public void testGetStaticNamesInPackage() throws Exception {
+        Map<String, Field> names = JarFile.getStaticNamesInPackage("gblib.JarFile.Bogus.VAL");
+        assertTrue(! names.isEmpty());
     }
 
 }

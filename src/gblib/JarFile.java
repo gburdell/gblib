@@ -1,22 +1,37 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * The MIT License
+ *
+ * Copyright 2017 gburdell.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 package gblib;
 
-import static gblib.Util.invariant;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -109,7 +124,7 @@ public class JarFile {
         final String clsName = hierName.substring(0, hierName.lastIndexOf('.'));
         final String memName = hierName.endsWith(".*") ? null : hierName.substring(hierName.lastIndexOf('.') + 1);
         Class cls = getClass(clsName);
-        for (Field fld : cls.getFields()) {
+        for (Field fld : cls.getDeclaredFields()) {
             if (Modifier.isStatic(fld.getModifiers())) {
                 if (Objects.isNull(memName) || fld.getName().equals(memName)) {
                     String fqn = clsName + "." + fld.getName();
@@ -149,16 +164,22 @@ public class JarFile {
         if (Objects.isNull(cls)) {
             if (!fqn.contains("$") && (fqn.indexOf('.') != fqn.lastIndexOf('.'))) {
                 //we have more than one '.' and not explicit inner class (using '$')
-                int nextDot = fqn.indexOf('.', fqn.indexOf('.')+1);
+                int nextDot = fqn.indexOf('.', fqn.indexOf('.') + ".".length());
                 String pkgCls = fqn.substring(0, nextDot);
                 fqn = pkgCls + fqn.substring(nextDot).replace('.', '$');
             }
-            cls = Class.forName(fqn);
+            //load class but do NOT initialize
+            cls = Class.forName(fqn, false, BOGUS.getClass().getClassLoader());
             CLS_BY_NAME.put(fqn, cls);
         }
         return cls;
     }
 
+    /**
+     * A bogus object which we use to get class loader (in a static method).
+     */
+    private static final Object BOGUS = new Object();
+    
     /**
      * Get map of Class by class name.
      *

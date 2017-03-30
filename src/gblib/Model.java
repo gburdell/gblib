@@ -451,6 +451,6 @@ public class Model {
 
     private String m_insertStmt;
     private Map<String, PosType> m_colInfo = null;
-    private List<String> m_colNames = Collections.EMPTY_LIST;
+    private List<String> m_colNames = Util.emptyUnmodifiableList();
     private String m_tblName;
 }

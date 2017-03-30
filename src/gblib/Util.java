@@ -34,9 +34,59 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import static java.util.Objects.nonNull;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Util {
+    public static <T> List<T> emptyUnmodifiableList() {
+        return Collections.unmodifiableList(new LinkedList<>());
+    }
+    
+    /**
+     * Generate non-null value.
+     * @param <T> value type of check.
+     * @param <R> return value type.
+     * @param check check for non-null.
+     * @param onNonNull apply function to check if check != null.
+     * @param onNull produce value if check or onNonNull return value is null.
+     * @return value of type R.
+     */
+    public static <T,R> R getNonNullValue(T check, Function<T,R> onNonNull, Supplier<R> onNull) {
+        R rval = null;
+        if (nonNull(check)) {
+            rval = onNonNull.apply(check);
+        }
+        return nonNull(rval) ? rval : onNull.get();
+    }
+    
+    /**
+     * Generate non-null value on 2-step evaluate.
+     * @param <T> value type of check.
+     * @param <R1> return value type on first evaluate.
+     * @param <R2> return value type on second/final evaluate.
+     * @param check check for non-null.
+     * @param onNonNull1 apply function to check if check != null.
+     * @param onNonNull2 apply function if onNonNull1 != null.
+     * @param onNull produce value if check or onNonNull[12] return value is null.
+     * @return 
+     */
+    public static <T,R1,R2> R2 getNonNullValue(T check, Function<T,R1> onNonNull1, Function<R1,R2> onNonNull2, Supplier<R2> onNull) {
+        R2 rval = null;
+        if (nonNull(check)) {
+            R1 v1 = onNonNull1.apply(check);
+            if (nonNull(v1)) {
+                rval = onNonNull2.apply(v1);
+            }
+        }
+        return nonNull(rval) ? rval : onNull.get();
+    }
 
+    public static <T> T getNonNullValue(T first, T second) {
+        return nonNull(first) ? first : second;
+    }
+    
     /**
      * Read InputStream and convert to string.
      *
