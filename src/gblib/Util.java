@@ -35,6 +35,8 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import static java.util.Objects.nonNull;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -44,6 +46,10 @@ public class Util {
         return Collections.unmodifiableList(new LinkedList<>());
     }
     
+    public static <K,V> Map<K,V> emptyUnmodifiableMap() {
+        return Collections.unmodifiableMap(new HashMap<>());
+    }
+
     /**
      * Generate non-null value.
      * @param <T> value type of check.
