@@ -362,22 +362,26 @@ public class Util {
      * @return comma separated String of list elements.
      */
     public static <T> String toCommaSeparatedString(final Collection<T> eles) {
-        StringBuilder s = new StringBuilder();
-        if (null != eles) {
-            for (T ele : eles) {
-                if (0 < s.length()) {
-                    s.append(',');
-                }
-                s.append(ele.toString());
-            }
-        }
-        return s.toString();
+        return join(eles, ",");
     }
 
     public static <T> String toCSV(final Collection<T> eles) {
         return toCommaSeparatedString(eles);
     }
 
+    public static <T> String join(Collection<T> eles, String sep) {
+         StringBuilder s = new StringBuilder();
+        if (null != eles) {
+            for (T ele : eles) {
+                if (0 < s.length()) {
+                    s.append(sep);
+                }
+                s.append(ele.toString());
+            }
+        }
+        return s.toString();       
+    }
+    
     public static String toString(StringBuilder s) {
         return (null != s) ? s.toString() : "";
     }
