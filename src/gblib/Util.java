@@ -241,6 +241,28 @@ public class Util {
         return -1;
     }
 
+    @FunctionalInterface
+    public interface ListProvider<F, T> {
+        public List<T> get(F from);
+    }
+    
+    /**
+     * Return an unmodifiable list: empty or otherwise.
+     * @param <F> type of list provider.
+     * @param <T> type of list element.
+     * @param from list provider (or null).
+     * @param ifNonNull call from's list provider function (for from != null).
+     * @return from's list or empty list.
+     */
+    public static <F,T> List<T> getUnModifiableList(F from, ListProvider<F,T> ifNonNull) {
+        return Collections.unmodifiableList(getList(from, ifNonNull));
+    }
+
+    public static <F,T> List<T> getList(F from, ListProvider<F,T> ifNonNull) {
+        List<T> list = nonNull(from) ? ifNonNull.get(from) : Collections.emptyList();
+        return list;
+    }
+        
     /**
      * Return a null x as an empty collection.
      */
